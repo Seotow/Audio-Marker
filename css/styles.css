@@ -1,0 +1,35 @@
+@font-face {
+    font-family: "QuodlibetSans";
+    font-weight: 400;
+    font-style: normal;
+    src: url("../fonts/QuodlibetSans-Light.ttf") format('truetype');
+}
+
+body {
+    color: #b9b9b9;
+    font-family: "QuodlibetSans";
+    font-weight: 400;
+    font-style: normal;
+}
+
+input {
+    background-color: transparent;
+    outline: none;
+    color: #2d8bea;
+    border: none;
+    width: 50px;
+}
+
+button {
+    outline: none;
+    margin-left: auto;
+    margin-right: 16px;
+    color: #fff;
+    display: block;
+    height: 24px;
+    width: 100px;
+    text-align: center;
+    border: none;
+    background-color: #2d8bea;
+    border-radius: 70px;
+}
