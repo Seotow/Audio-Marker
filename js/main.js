@@ -7,7 +7,7 @@ const $$ = document.querySelectorAll.bind(document)
     $(".add-marker").onclick = run
 })()
 
-function handleAudio({
+async function handleAudio({
     audioFilePath,
     start = 0, //seconds
     threshold = -30,
@@ -15,86 +15,69 @@ function handleAudio({
 }) {
     const fs = require("fs")
     const wav = require("node-wav")
-    const { spawn } = require("child_process")
 
-    const outputPath = audioFilePath.slice(0, -3) + "wav"
+    const fileExt = audioFilePath.split(".").pop()
+    const outputPath = audioFilePath.replace(`.${fileExt}`, ".wav")
+    const convertedFile = await convertAudioToWav(audioFilePath, fileExt, outputPath)
 
-    // Sử dụng ffmpeg để chuyển đổi từ MP3 hoặc MOV thành WAV
-    const ffmpeg = spawn("ffmpeg", ["-i", audioFilePath, outputPath, "-y"])
+    const wavFileData = fs.readFileSync(convertedFile)
 
-    ffmpeg.stderr.on("data", (data) => {
-        return
-    })
+    const wavAudioData = wav.decode(wavFileData)
 
-    ffmpeg.on("close", (code) => {
-        if (code === 0) {
-            // Đọc dữ liệu âm thanh từ file WAV
-            const wavFileData = fs.readFileSync(outputPath)
-            const wavAudioData = wav.decode(wavFileData)
+    const sampleRate = wavAudioData.sampleRate
+    const audioData = wavAudioData.channelData[0] // Lấy dữ liệu âm thanh từ kênh thứ nhất
 
-            const sampleRate = wavAudioData.sampleRate
-            const audioData = wavAudioData.channelData[0] // Lấy dữ liệu âm thanh từ kênh thứ nhất
+    const silenceThreshold = Math.pow(10, 0.1 * (Number(threshold) || -30)) // Chuyển đổi từ decibel sang giá trị năng lượng (energy threshold)
 
-            const silenceThreshold = Math.pow(
-                10,
-                0.1 * (Number(threshold) || -30)
-            ) // Chuyển đổi từ decibel sang giá trị năng lượng (energy threshold)
+    const silentRanges = []
 
-            const silentRanges = []
+    let isSilent = true
+    let silentStart = 0
 
-            let isSilent = true
-            let silentStart = 0
+    for (let i = 0; i < audioData.length; i++) {
+        const sample = audioData[i]
 
-            for (let i = 0; i < audioData.length; i++) {
-                const sample = audioData[i]
+        // Tính toán năng lượng của mẫu âm thanh
+        const energy = sample * sample
 
-                // Tính toán năng lượng của mẫu âm thanh
-                const energy = sample * sample
+        if (energy >= silenceThreshold && isSilent) {
+            // Khoảng im lặng kết thúc
+            const silentEnd = i / sampleRate
+            const silentDuration = silentEnd - silentStart
 
-                if (energy >= silenceThreshold && isSilent) {
-                    // Khoảng im lặng kết thúc
-                    const silentEnd = i / sampleRate
-                    const silentDuration = silentEnd - silentStart
-
-                    if (silentDuration >= (Number(silenceDuration) || 0.5)) {
-                        silentRanges.push({
-                            start: silentStart,
-                            end: silentEnd,
-                        })
-                    }
-
-                    isSilent = false
-                } else if (energy < silenceThreshold && !isSilent) {
-                    // Khoảng im lặng bắt đầu
-                    silentStart = i / sampleRate
-                    isSilent = true
-                }
+            if (silentDuration >= (Number(silenceDuration) || 0.5)) {
+                silentRanges.push({
+                    start: silentStart,
+                    end: silentEnd,
+                })
             }
-            alert(`${silentRanges.length} markers được tạo`)
 
-            const csInterface = new CSInterface()
-            csInterface.evalScript("saveProject()")
-            
-            const ADD_MARKER_DELAY = 50 // miliseconds
-
-            silentRanges.forEach((silent, index) => {
-                setTimeout(() => {
-                    csInterface.evalScript(
-                        "addMarker(" + (silent.start + start).toFixed(2) + ")"
-                    )
-
-                    if (index == silentRanges.length - 1) {
-                        alert("Done")
-
-                        csInterface.evalScript("saveProject()")
-                    }
-                }, index * ADD_MARKER_DELAY)
-            })
-
-            return
-        } else {
-            alert("FFmpeg conversion failed")
+            isSilent = false
+        } else if (energy < silenceThreshold && !isSilent) {
+            // Khoảng im lặng bắt đầu
+            silentStart = i / sampleRate
+            isSilent = true
         }
+    }
+    alert(`${silentRanges.length} markers được tạo`)
+
+    const csInterface = new CSInterface()
+    csInterface.evalScript("saveProject()")
+
+    const ADD_MARKER_DELAY = 50 // milliseconds
+
+    silentRanges.forEach((silent, index) => {
+        setTimeout(() => {
+            csInterface.evalScript(
+                "addMarker(" + (silent.start + start).toFixed(2) + ")"
+            )
+
+            if (index == silentRanges.length - 1) {
+                alert("Done")
+
+                csInterface.evalScript("saveProject()")
+            }
+        }, index * ADD_MARKER_DELAY)
     })
 }
 
@@ -116,6 +99,25 @@ function getAndConvertData() {
     data.silenceDuration = Number(silenceDuration)
 
     return data
+}
+
+async function convertAudioToWav(audioFilePath, fileExt, outputPath) {
+    const ffmpeg = require("fluent-ffmpeg")
+    return new Promise((resolve, reject) => {
+        if (fileExt !== "wav") {
+            ffmpeg(audioFilePath)
+                .inputFormat(fileExt)
+                .audioCodec("pcm_s16le")
+                .format("wav")
+                .on("error", (err) =>
+                    reject(`FFmpeg conversion failed: ${err}`)
+                )
+                .on("end", () => resolve(outputPath))
+                .save(outputPath)
+        } else {
+            resolve(outputPath)
+        }
+    })
 }
 
 function run() {
