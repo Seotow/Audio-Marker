@@ -17,7 +17,7 @@ async function handleAudio({
     const wav = require("node-wav")
 
     const fileExt = audioFilePath.split(".").pop()
-    const outputPath = audioFilePath.replace(`.${fileExt}`, ".wav")
+    const outputPath = audioFilePath.replace(`.${fileExt}`, ".wav") 
     const convertedFile = await convertAudioToWav(audioFilePath, fileExt, outputPath)
 
     const wavFileData = fs.readFileSync(convertedFile)
@@ -103,6 +103,11 @@ function getAndConvertData() {
 
 async function convertAudioToWav(audioFilePath, fileExt, outputPath) {
     const ffmpeg = require("fluent-ffmpeg")
+    const ffmpegPath = "C:\\Program Files (x86)\\Common Files\\Adobe\\CEP\\extensions\\Audio Marker\\js\\libs\\ffmpeg\\bin\\ffmpeg.exe"
+    const ffprobePath = "C:\\Program Files (x86)\\Common Files\\Adobe\\CEP\\extensions\\Audio Marker\\js\\libs\\ffmpeg\\bin\\ffprobe.exe"
+
+    ffmpeg.setFfmpegPath(ffmpegPath)
+    ffmpeg.setFfprobePath(ffprobePath)
     return new Promise((resolve, reject) => {
         if (fileExt !== "wav") {
             ffmpeg(audioFilePath)
