@@ -17,8 +17,12 @@ async function handleAudio({
     const wav = require("node-wav")
 
     const fileExt = audioFilePath.split(".").pop()
-    const outputPath = audioFilePath.replace(`.${fileExt}`, ".wav") 
-    const convertedFile = await convertAudioToWav(audioFilePath, fileExt, outputPath)
+    const outputPath = audioFilePath.replace(`.${fileExt}`, ".wav")
+    const convertedFile = await convertAudioToWav(
+        audioFilePath,
+        fileExt,
+        outputPath
+    )
 
     const wavFileData = fs.readFileSync(convertedFile)
 
@@ -81,16 +85,9 @@ async function handleAudio({
     })
 }
 
-function getAndConvertData() {
+function run() {
     const csInterface = new CSInterface()
     const data = {}
-
-    csInterface.evalScript("getSelected()", (res) => {
-        const response = JSON.parse(res)
-
-        data.audioFilePath = response.path
-        data.start = response.start
-    })
 
     const threshold = $("#threshold").value
     const silenceDuration = $("#silentDuration").value
@@ -98,13 +95,26 @@ function getAndConvertData() {
     data.threshold = Number(threshold)
     data.silenceDuration = Number(silenceDuration)
 
-    return data
+    csInterface.evalScript("getSelected()", async (res) => {
+        const response = await JSON.parse(res)
+
+        data.audioFilePath = response.path
+        data.start = response.start
+
+        if (Object.keys(data).length == 4) {
+            handleAudio(data)
+        } else {
+            alert("Chưa chọn âm thanh")
+        }
+    })
 }
 
 async function convertAudioToWav(audioFilePath, fileExt, outputPath) {
     const ffmpeg = require("fluent-ffmpeg")
-    const ffmpegPath = "C:\\Program Files (x86)\\Common Files\\Adobe\\CEP\\extensions\\Audio Marker\\js\\libs\\ffmpeg\\bin\\ffmpeg.exe"
-    const ffprobePath = "C:\\Program Files (x86)\\Common Files\\Adobe\\CEP\\extensions\\Audio Marker\\js\\libs\\ffmpeg\\bin\\ffprobe.exe"
+    const ffmpegPath =
+        "C:\\Program Files (x86)\\Common Files\\Adobe\\CEP\\extensions\\Audio Marker\\js\\libs\\ffmpeg\\bin\\ffmpeg.exe"
+    const ffprobePath =
+        "C:\\Program Files (x86)\\Common Files\\Adobe\\CEP\\extensions\\Audio Marker\\js\\libs\\ffmpeg\\bin\\ffprobe.exe"
 
     ffmpeg.setFfmpegPath(ffmpegPath)
     ffmpeg.setFfprobePath(ffprobePath)
@@ -125,14 +135,14 @@ async function convertAudioToWav(audioFilePath, fileExt, outputPath) {
     })
 }
 
-function run() {
-    const data = getAndConvertData()
+// function run() {
+//     const data = getAndConvertData()
 
-    setTimeout(() => {
-        if (Object.keys(data).length == 4) {
-            handleAudio(data)
-        } else {
-            alert("Chưa chọn âm thanh")
-        }
-    }, 500)
-}
+//     setTimeout(() => {
+//         if (Object.keys(data).length == 4) {
+//             handleAudio(data)
+//         } else {
+//             alert("Chưa chọn âm thanh")
+//         }
+//     }, 0)
+// }

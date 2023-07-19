@@ -24,7 +24,7 @@ function getSelected() {
             if (audioClip.isSelected()) {
                 return JSON.stringify({
                     name: audioClip.name,
-                    start: audioClip.start.ticks / TICKS_PER_SECOND,
+                    start: audioClip.start.ticks / TICKS_PER_SECOND || 0.0000001,
                     path: audioClip.projectItem.getMediaPath(),
                 })
             }
