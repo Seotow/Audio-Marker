@@ -4,12 +4,38 @@
     font-style: normal;
     src: url("../fonts/QuodlibetSans-Light.ttf") format('truetype');
 }
+/* Scrollbar css */
+html *::-webkit-scrollbar {
+    width: 4px;
+    background-color: transparent;
+    border-radius: 50%;
+}
+
+html *::-webkit-scrollbar-track {
+    border-radius: 10px;
+    background: transparent;
+    border-radius: 50%;
+}
+
+html *::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background: #aaa;
+    border: 1px solid #aaa;
+}
 
 body {
     color: #b9b9b9;
     font-family: "QuodlibetSans";
     font-weight: 400;
     font-style: normal;
+}
+
+ul {
+    padding: 0;
+}
+
+li{
+    list-style: none;
 }
 
 input {
@@ -32,4 +58,112 @@ button {
     border: none;
     background-color: #2d8bea;
     border-radius: 70px;
+}
+
+.progressBar {
+    height: 4px;
+    border-radius: 50px;
+    background-color: #2d8bea;
+    width: 0;
+    margin-bottom: 8px;
+}
+
+.actions {
+    display: flex;
+}
+
+.preset {
+    margin-bottom: 8px;
+}
+
+.inpLabel {
+    width: 200px;
+    text-align: center;
+}
+
+.inpLabel input {
+    text-align: center;
+    width: 30px;
+}
+
+.inpLabel input:focus {
+    background-color: #fff;
+}
+
+.effect{
+    display: flex;
+    justify-content: space-evenly;
+    position: relative;
+    margin: 12px 0;
+}
+
+.listHeader {
+    display: flex;
+    align-items: center;
+}
+
+.presetName {
+    white-space: nowrap; 
+    width: 300px;
+    text-overflow: hidden;
+    overflow: hidden;
+    flex: 1;
+    padding: 4px 8px;
+    outline: none;
+    border-radius: 4px;
+}
+
+.listBody {
+    visibility: hidden;
+    display: none;
+    translate: 0 -30px;
+    transition: 0.4s;
+    opacity: 0;
+}
+
+.listBody.open {
+    visibility: visible;
+    display: block;
+    translate: 0 0;
+    opacity: 1;
+}
+
+.tableHeader {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.chevron {
+    margin-left: auto;
+    margin-right: 100px;
+}
+
+.chevron:hover {
+    cursor: pointer;
+}
+
+.icon {
+    font-size: 20px;
+    padding: 6px;
+    cursor: pointer;
+}
+
+.addEffect {
+    padding: 4px;
+    margin: 0 50%;
+    cursor: pointer;
+}
+
+.deleteEffect {
+    position: absolute;
+    right: 0;
+    font-size: 18px;
+    padding: 4px;
+    cursor: pointer;
+}
+
+.addPreset {
+    padding: 4px;
+    margin-left: 14px;
+    cursor: pointer;
 }
